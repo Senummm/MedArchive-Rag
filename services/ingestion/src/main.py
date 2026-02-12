@@ -217,9 +217,12 @@ async def process_document(file_path: Path):
             logger.warning(f"No chunks generated for: {file_path.name}")
             return
 
-        # Step 4: Update chunk metadata with embedding model
+        # Step 4: Update chunk metadata with embedding model and document info
         for chunk in chunks:
             chunk.embedding_model = embedder.model_name
+            # Add document metadata to chunks for citation extraction
+            chunk.document_title = doc_metadata.title
+            chunk.source_file = file_path.name
 
         # Step 5: Generate embeddings
         doc_metadata.processing_status = ProcessingStatus.EMBEDDING

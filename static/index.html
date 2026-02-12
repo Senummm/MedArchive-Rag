@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedArchive AI - Medical Assistant</title>
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e5e7eb;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .new-chat-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .new-chat-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f5f6fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.6;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #2c3e50;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .citations {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid rgba(102,126,234,0.2);
+            font-size: 13px;
+        }
+
+        .citations strong {
+            color: #667eea;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .citation {
+            display: inline-block;
+            margin: 4px 8px 4px 0;
+            padding: 6px 12px;
+            background: rgba(102,126,234,0.15);
+            border: 1px solid rgba(102,126,234,0.3);
+            border-radius: 6px;
+            color: #667eea;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .citation:hover {
+            background: rgba(102,126,234,0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Markdown styling */
+        .message-content code {
+            background: rgba(0,0,0,0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .message-content pre {
+            background: rgba(0,0,0,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .message-content pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .message-content ul, .message-content ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        .message-content li {
+            margin: 4px 0;
+        }
+
+        .message-content strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .message-content em {
+            font-style: italic;
+        }
+
+        .message-content blockquote {
+            border-left: 3px solid #667eea;
+            padding-left: 12px;
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .suggested-questions {
+            padding: 15px 30px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .suggested-questions-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .suggested-question {
+            display: inline-block;
+            margin: 5px 5px 5px 0;
+            padding: 8px 15px;
+            background: #f0f2ff;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggested-question:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .input-area {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendButton {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #sendButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        #sendButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 80%, 100% {
+                opacity: 0;
+            }
+            40% {
+                opacity: 1;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 30px;
+            color: #999;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #f00;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            color: #c00;
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="width: 100px;"></div>
+            <div class="header-content">
+                <h1>🏥 MedArchive AI</h1>
+                <p>Clinical Decision Support Assistant</p>
+            </div>
+            <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+            <div class="empty-state">
+                <h2>Welcome to MedArchive AI</h2>
+                <p>Ask me anything about clinical guidelines, treatments, diagnoses, and medical documentation.</p>
+                <p style="margin-top: 20px; font-size: 13px;">Examples: "What is the first-line treatment for hypertension?" or "What are the complications of diabetes?"</p>
+            </div>
+        </div>
+
+        <div id="suggestedQuestions" class="suggested-questions" style="display:none;">
+            <div class="suggested-questions-title">Suggested follow-ups:</div>
+            <div id="questionsList"></div>
+        </div>
+
+        <div class="loading">
+            <div class="loading-dots">
+                <span>●</span>
+                <span>●</span>
+                <span>●</span>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-container">
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Ask a medical question..."
+                    autocomplete="off"
+                >
+                <button id="sendButton">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const WS_URL = 'ws://127.0.0.1:8001/api/v1/chat/ws';
+        let ws = null;
+        let sessionId = null;
+        let isWaitingForResponse = false;
+        let currentAssistantMessage = null;
+        let currentMessageContent = '';
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const suggestedQuestionsDiv = document.getElementById('suggestedQuestions');
+        const questionsListDiv = document.getElementById('questionsList');
+        const loadingDiv = document.querySelector('.loading');
+
+        // Session Management
+        function loadSessionId() {
+            const saved = localStorage.getItem('medarchive_session_id');
+            if (saved && saved !== 'null') {
+                sessionId = saved;
+                console.log('Loaded session ID from localStorage:', sessionId);
+            }
+        }
+
+        function saveSessionId(newSessionId) {
+            if (newSessionId && newSessionId !== 'null') {
+                sessionId = newSessionId;
+                localStorage.setItem('medarchive_session_id', sessionId);
+                console.log('Saved session ID to localStorage:', sessionId);
+            }
+        }
+
+        function clearSessionId() {
+            sessionId = null;
+            localStorage.removeItem('medarchive_session_id');
+            console.log('Cleared session ID from localStorage');
+        }
+
+        // WebSocket Setup
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                // Load persisted session ID if available
+                loadSessionId();
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addMessage('assistant', '❌ Connection error. Please refresh the page.', null, true);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                // Auto-reconnect after 3 seconds
+                setTimeout(() => {
+                    console.log('Attempting to reconnect...');
+                    connectWebSocket();
+                }, 3000);
+            };
+        }
+
+        // Handle WebSocket messages
+        function handleWebSocketMessage(message) {
+            switch (message.type) {
+                case 'session':
+                    saveSessionId(message.session_id);
+                    break;
+
+                case 'typing':
+                    updateTypingIndicator(message.status);
+                    break;
+
+                case 'token':
+                    appendToCurrentMessage(message.content);
+                    break;
+
+                case 'complete':
+                    finalizeMessage(message.citations, message.suggested_questions);
+                    break;
+
+                case 'error':
+                    console.error('Server error:', message.message);
+                    addMessage('assistant', `❌ ${message.message}`, null, true);
+                    resetUIState();
+                    break;
+            }
+        }
+
+        // Update typing indicator
+        function updateTypingIndicator(status) {
+            const statusText = {
+                'retrieving': '🔍 Searching documents...',
+                'reranking': '📊 Ranking results...',
+                'generating': '✍️ Writing response...'
+            };
+
+            loadingDiv.textContent = statusText[status] || 'Processing...';
+        }
+
+        // Append token to current message
+        function appendToCurrentMessage(token) {
+            if (!currentAssistantMessage) {
+                // Create new assistant message bubble
+                currentAssistantMessage = document.createElement('div');
+                currentAssistantMessage.className = 'message assistant';
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                // Use unique ID per message
+                const messageId = 'msg-' + Date.now();
+                contentDiv.id = messageId;
+                contentDiv.dataset.messageId = messageId;
+
+                currentAssistantMessage.appendChild(contentDiv);
+                chatMessages.appendChild(currentAssistantMessage);
+
+                currentMessageContent = '';
+            }
+
+            // Hide loading, show streaming content
+            loadingDiv.classList.remove('active');
+
+            // Append token
+            currentMessageContent += token;
+            const contentDiv = currentAssistantMessage.querySelector('.message-content');
+            if (contentDiv) {
+                // Render markdown in real-time
+                contentDiv.innerHTML = marked.parse(currentMessageContent);
+            }
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Finalize message with citations and suggestions
+        function finalizeMessage(citations, suggestedQuestions) {
+            if (currentAssistantMessage) {
+                const contentDiv = currentAssistantMessage.querySelector('.message-content');
+
+                if (contentDiv) {
+                    // Remove the ID to prevent reuse
+                    contentDiv.removeAttribute('id');
+
+                    // Add citations if present
+                    if (citations && citations.length > 0) {
+                        const citationsDiv = document.createElement('div');
+                        citationsDiv.className = 'citations';
+                        citationsDiv.innerHTML = '<strong>📚 Sources:</strong>';
+
+                        const citationsContainer = document.createElement('div');
+                        citations.forEach((citation, index) => {
+                            const citationSpan = document.createElement('span');
+                            citationSpan.className = 'citation';
+                            citationSpan.textContent = `[${index + 1}] ${citation.document_title}`;
+                            if (citation.page_numbers && citation.page_numbers.length > 0) {
+                                citationSpan.textContent += ` (p.${citation.page_numbers.join(',')})`;
+                            }
+                            citationsContainer.appendChild(citationSpan);
+                        });
+
+                        citationsDiv.appendChild(citationsContainer);
+                        contentDiv.appendChild(citationsDiv);
+                    }
+                }
+            }
+
+            // Show suggested questions
+            if (suggestedQuestions && suggestedQuestions.length > 0) {
+                showSuggestedQuestions(suggestedQuestions);
+            }
+
+            // Reset state for next message
+            currentAssistantMessage = null;
+            currentMessageContent = '';
+            resetUIState();
+        }
+
+        // Reset UI state
+        function resetUIState() {
+            isWaitingForResponse = false;
+            sendButton.disabled = false;
+            loadingDiv.classList.remove('active');
+            loadingDiv.textContent = 'Thinking...';
+            messageInput.focus();
+        }
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Start a new chat session
+        function startNewChat() {
+            // Clear session completely
+            clearSessionId();
+            currentAssistantMessage = null;
+            currentMessageContent = '';
+            isWaitingForResponse = false;
+
+            // Clear chat messages and show empty state
+            chatMessages.innerHTML = `
+                <div class="empty-state">
+                    <h2>Welcome to MedArchive AI</h2>
+                    <p>Ask me anything about clinical guidelines, treatments, diagnoses, and medical documentation.</p>
+                    <p style="margin-top: 20px; font-size: 13px;">Examples: "What is the first-line treatment for hypertension?" or "What are the complications of diabetes?"</p>
+                </div>
+            `;
+
+            // Hide suggested questions
+            suggestedQuestionsDiv.style.display = 'none';
+
+            // Reset input and button
+            messageInput.value = '';
+            sendButton.disabled = false;
+            loadingDiv.classList.remove('active');
+
+            // Reconnect WebSocket
+            if (ws) {
+                ws.close();
+            }
+            connectWebSocket();
+        }
+
+        // Send message via WebSocket
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isWaitingForResponse || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // Clear input
+            messageInput.value = '';
+
+            // Remove empty state
+            const emptyState = chatMessages.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            // Add user message
+            addMessage('user', message);
+
+            // IMPORTANT: Reset current message state before sending
+            // This ensures each response creates a new message bubble
+            currentAssistantMessage = null;
+            currentMessageContent = '';
+
+            // Show loading
+            isWaitingForResponse = true;
+            sendButton.disabled = true;
+            loadingDiv.classList.add('active');
+            suggestedQuestionsDiv.style.display = 'none';
+
+            // Send via WebSocket
+            ws.send(JSON.stringify({
+                message: message,
+                session_id: sessionId,
+                enable_reranking: true,
+                max_context_turns: 5
+            }));
+        }
+
+        // Add message to chat (for user messages only now)
+        function addMessage(role, content, citations = null, isError = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            if (isError) {
+                contentDiv.classList.add('error-message');
+            }
+
+            // Format content with line breaks
+            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show suggested questions
+        function showSuggestedQuestions(questions) {
+            questionsListDiv.innerHTML = '';
+
+            questions.forEach(question => {
+                const questionBtn = document.createElement('button');
+                questionBtn.className = 'suggested-question';
+                questionBtn.textContent = question;
+                questionBtn.onclick = () => {
+                    messageInput.value = question;
+                    sendMessage();
+                };
+                questionsListDiv.appendChild(questionBtn);
+            });
+
+            suggestedQuestionsDiv.style.display = 'block';
+        }
+
+        // Initialize
+        loadSessionId(); // Load any existing session from localStorage
+        connectWebSocket();
+        messageInput.focus();
+
+        console.log('MedArchive AI Chat Interface Ready (WebSocket Mode)');
+        console.log('WebSocket:', WS_URL);
+        if (sessionId) {
+            console.log('Resuming session:', sessionId);
+        }
+    </script>
+</body>
+</html>

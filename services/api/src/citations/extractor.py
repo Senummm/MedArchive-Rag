@@ -59,13 +59,17 @@ class CitationExtractor:
             if source_num <= len(search_results):
                 result = search_results[source_num - 1]
 
-                # Get document title
+                # Get document title from available metadata
                 doc_title = "Unknown Document"
                 if document_titles and result.document_id in document_titles:
                     doc_title = document_titles[result.document_id]
                 elif result.source_file:
-                    # Use filename as fallback
-                    doc_title = result.source_file
+                    # Use filename as fallback (remove extension)
+                    doc_title = result.source_file.replace('.pdf', '').replace('_', ' ').title()
+                elif result.section_path:
+                    # Extract root section as document identifier
+                    root_section = result.section_path.split(' > ')[0] if ' > ' in result.section_path else result.section_path
+                    doc_title = f"Clinical Document - {root_section}"
 
                 # Create citation
                 citation = Citation(

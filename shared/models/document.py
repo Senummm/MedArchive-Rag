@@ -101,6 +101,10 @@ class ChunkMetadata(BaseModel):
     embedding_model: Optional[str] = Field(None, description="Model used for embedding")
     token_count: Optional[int] = Field(None, ge=1, description="Number of tokens in chunk")
 
+    # Document Metadata (for citations)
+    document_title: Optional[str] = Field(None, description="Source document title")
+    source_file: Optional[str] = Field(None, description="Source filename")
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator("text")
@@ -136,7 +140,7 @@ class SearchResult(BaseModel):
     document_id: UUID
     text: str
     score: float = Field(..., description="Similarity score (0-1 for cosine)")
-    source_file: str
+    source_file: Optional[str] = None
     page_numbers: List[int] = Field(default_factory=list)
     section_path: Optional[str] = None
     chunk_index: int
@@ -152,13 +156,21 @@ class RetrievalResult(BaseModel):
     chunk_id: UUID
     document_id: UUID
     text: str
-    score: float = Field(..., ge=0.0, le=1.0, description="Relevance score (0-1)")
+    score: float = Field(..., description="Relevance score (0-1)")
     metadata: Dict[str, Any] = Field(
         default_factory=dict, description="Chunk metadata (section, pages, etc.)"
     )
 
     # Reranking (Stage 2)
     rerank_score: Optional[float] = Field(None, description="Score after reranking")
+
+    @field_validator("score", "rerank_score")
+    @classmethod
+    def clamp_score(cls, v: Optional[float]) -> Optional[float]:
+        """Clamp relevance scores to 0-1 range."""
+        if v is None:
+            return v
+        return min(max(v, 0.0), 1.0)
 
 
 class QueryRequest(BaseModel):
@@ -177,6 +189,7 @@ class QueryRequest(BaseModel):
     )
     enable_reranking: bool = Field(default=True, description="Apply two-stage retrieval")
     stream_response: bool = Field(default=True, description="Stream LLM response")
+    session_id: Optional[UUID] = Field(None, description="Conversation session ID for follow-ups")
 
     class Config:
         json_schema_extra = {
@@ -200,7 +213,13 @@ class Citation(BaseModel):
     document_title: str
     page_numbers: List[int]
     text_snippet: str = Field(..., description="The exact text from the source")
-    relevance_score: float = Field(..., ge=0.0, le=1.0)
+    relevance_score: float
+
+    @field_validator("relevance_score")
+    @classmethod
+    def clamp_score(cls, v: float) -> float:
+        """Clamp relevance score to 0-1 range."""
+        return min(max(v, 0.0), 1.0)
 
 
 class QueryResponse(BaseModel):
@@ -240,6 +259,30 @@ class QueryResponse(BaseModel):
                 "model_used": "llama-3.3-70b-versatile",
             }
         }
+
+
+class ChatRequest(BaseModel):
+    """
+    Chat request for conversational interface with follow-up support.
+    """
+
+    message: str = Field(..., min_length=1, description="User's message")
+    session_id: Optional[UUID] = Field(None, description="Conversation session ID (creates new if omitted)")
+    enable_reranking: bool = Field(default=True, description="Apply two-stage retrieval")
+    max_context_turns: int = Field(default=5, ge=1, le=10, description="Number of previous turns to include")
+
+
+class ChatResponse(BaseModel):
+    """
+    Chat response with conversation context.
+    """
+
+    session_id: UUID
+    message: str = Field(..., description="Assistant's response")
+    citations: List[Citation] = Field(default_factory=list)
+    suggested_questions: List[str] = Field(default_factory=list, description="Suggested follow-up questions")
+    latency_ms: float
+    trace_id: Optional[str] = None
 
 
 class HealthResponse(BaseModel):

@@ -145,6 +145,109 @@ class LLMService:
             logger.error(f"LLM streaming generation failed: {e}")
             raise
 
+    async def generate_answer_stream_from_messages(
+        self,
+        messages: List[Dict[str, str]],
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate an answer with streaming from a full messages list.
+
+        Args:
+            messages: Complete conversation messages including system, history, and current query
+
+        Yields:
+            Answer text chunks as they are generated
+        """
+        logger.info(f"Generating streaming answer from {len(messages)} messages")
+
+        try:
+            stream = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                stream=True,
+            )
+
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            logger.error(f"LLM streaming generation failed: {e}")
+            raise
+
+    async def generate_answer_with_history(
+        self,
+        query: str,
+        context_chunks: List[SearchResult],
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+        stream: bool = False,
+    ) -> str:
+        """
+        Generate an answer with conversation history.
+
+        Args:
+            query: User's current question
+            context_chunks: Retrieved chunks for context
+            conversation_history: Previous conversation turns
+            stream: Whether to stream the response
+
+        Returns:
+            Generated answer text
+        """
+        # Build context from chunks
+        context = self._build_context(context_chunks)
+
+        # Build messages list including history
+        messages = [
+            {
+                "role": "system",
+                "content": self._get_system_prompt(),
+            }
+        ]
+
+        # Add conversation history (limited to avoid context overflow)
+        if conversation_history:
+            # Include last 4 turns (2 user + 2 assistant messages)
+            for turn in conversation_history[-4:]:
+                messages.append({
+                    "role": turn["role"],
+                    "content": turn["content"],
+                })
+
+        # Add current query with context
+        current_prompt = f"""Context from medical documents:
+
+{context}
+
+Question: {query}
+
+Please provide a comprehensive, accurate answer based on the context above. If the context doesn't contain enough information to answer the question, clearly state that."""
+
+        messages.append({
+            "role": "user",
+            "content": current_prompt,
+        })
+
+        logger.info(f"Generating contextual answer with {len(conversation_history or [])} history turns")
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
+
+            answer = response.choices[0].message.content
+            logger.info(f"Generated contextual answer ({len(answer)} characters)")
+            return answer
+
+        except Exception as e:
+            logger.error(f"LLM generation with history failed: {e}")
+            raise
+
     def _build_context(self, chunks: List[SearchResult]) -> str:
         """
         Build context string from retrieved chunks.

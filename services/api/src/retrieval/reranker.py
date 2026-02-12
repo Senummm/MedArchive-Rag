@@ -18,18 +18,18 @@ logger = get_logger(__name__)
 
 class Reranker:
     """
-    Reranking service using BGE-Reranker-v2-m3.
+    Reranking service using cross-encoder models.
 
-    This model is highly accurate for semantic relevance scoring.
+    This model is used for semantic relevance scoring.
     Used as second-stage filter after initial retrieval (50→5 pattern).
     """
 
-    def __init__(self, model_name: str = "BAAI/bge-reranker-v2-m3"):
+    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
         """
-        Initialize the reranker with BGE-Reranker-v2-m3.
+        Initialize the reranker with cross-encoder model.
 
         Args:
-            model_name: Cross-encoder model name (default: BAAI/bge-reranker-v2-m3)
+            model_name: Cross-encoder model name (default: ms-marco-MiniLM-L-6-v2)
         """
         self.model_name = model_name
         self.model = CrossEncoder(model_name)

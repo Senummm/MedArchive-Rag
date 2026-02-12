@@ -34,6 +34,7 @@ class Retriever:
         qdrant_url: str = "http://qdrant:6333",
         collection_name: str = "medical_documents",
         embedding_model: str = "BAAI/bge-large-en-v1.5",
+        api_key: Optional[str] = None,
     ):
         """
         Initialize the retriever.
@@ -42,9 +43,10 @@ class Retriever:
             qdrant_url: Qdrant server URL
             collection_name: Vector collection name
             embedding_model: Sentence transformer model name
+            api_key: Qdrant API key (for Qdrant Cloud)
         """
         self.collection_name = collection_name
-        self.client = QdrantClient(url=qdrant_url)
+        self.client = QdrantClient(url=qdrant_url, api_key=api_key)
         self.embedding_model = SentenceTransformer(embedding_model)
         logger.info(
             f"Initialized retriever with collection '{collection_name}' "
@@ -99,13 +101,13 @@ class Retriever:
 
         # Search
         try:
-            results = self.client.search(
+            results = self.client.query_points(
                 collection_name=self.collection_name,
-                query_vector=query_embedding,
+                query=query_embedding,
                 limit=top_k,
                 score_threshold=score_threshold,
                 query_filter=qdrant_filter,
-            )
+            ).points
 
             # Convert to SearchResult objects
             search_results = []
@@ -115,7 +117,7 @@ class Retriever:
                     document_id=UUID(result.payload["document_id"]),
                     text=result.payload["text"],
                     score=result.score,
-                    source_file=result.payload["source_file"],
+                    source_file=result.payload.get("source_file") or result.payload.get("document_title"),
                     page_numbers=result.payload.get("page_numbers", []),
                     section_path=result.payload.get("section_path"),
                     chunk_index=result.payload["chunk_index"],

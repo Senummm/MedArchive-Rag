@@ -214,6 +214,7 @@ class SemanticChunker:
         text: str,
         max_length: int,
         overlap: int,
+        depth: int = 0,
     ) -> List[str]:
         """
         Recursively split text using multiple separators.
@@ -222,24 +223,33 @@ class SemanticChunker:
             text: Text to split
             max_length: Maximum chunk length
             overlap: Overlap between chunks
+            depth: Current recursion depth (for preventing infinite recursion)
 
         Returns:
             List of text chunks
         """
+        # Prevent infinite recursion
+        if depth > 10:
+            logger.warning(
+                "Max recursion depth reached, forcing character split",
+                extra={"text_length": len(text), "depth": depth},
+            )
+            return self._split_by_length(text, max_length, overlap)
+
         if len(text) <= max_length:
             return [text]
 
         # Try each separator in order of preference
         for separator in self.separators:
             if separator in text:
-                chunks = self._split_by_separator(text, separator, max_length, overlap)
+                chunks = self._split_by_separator(text, separator, max_length, overlap, depth)
                 if chunks:
                     return chunks
 
         # Fallback: Character-level split (should rarely happen)
         logger.warning(
             "Falling back to character-level split",
-            extra={"text_length": len(text)},
+            extra={"text_length": len(text), "depth": depth},
         )
         return self._split_by_length(text, max_length, overlap)
 
@@ -249,6 +259,7 @@ class SemanticChunker:
         separator: str,
         max_length: int,
         overlap: int,
+        depth: int = 0,
     ) -> List[str]:
         """Split text by a specific separator."""
         splits = text.split(separator)
@@ -269,7 +280,7 @@ class SemanticChunker:
                 if len(split_with_sep) > max_length:
                     # Recursively split with next separator
                     sub_chunks = self._split_text_recursive(
-                        split_with_sep, max_length, overlap
+                        split_with_sep, max_length, overlap, depth + 1
                     )
                     chunks.extend(sub_chunks)
                     current_chunk = ""

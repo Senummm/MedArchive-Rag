@@ -169,6 +169,9 @@ class QdrantIndexer:
                         "token_count": chunk.token_count,
                         "embedding_model": chunk.embedding_model,
                         "created_at": chunk.created_at.isoformat(),
+                        # Add document metadata for citations
+                        "document_title": getattr(chunk, 'document_title', None),
+                        "source_file": getattr(chunk, 'source_file', None),
                     },
                 )
                 points.append(point)
