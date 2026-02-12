@@ -125,6 +125,23 @@ class ChunkMetadata(BaseModel):
         }
 
 
+class SearchResult(BaseModel):
+    """
+    A single search result from vector database retrieval.
+    
+    Lightweight model for internal retrieval operations.
+    """
+
+    chunk_id: UUID
+    document_id: UUID
+    text: str
+    score: float = Field(..., description="Similarity score (0-1 for cosine)")
+    source_file: str
+    page_numbers: List[int] = Field(default_factory=list)
+    section_path: Optional[str] = None
+    chunk_index: int
+
+
 class RetrievalResult(BaseModel):
     """
     A single retrieved chunk with its relevance score.
