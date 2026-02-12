@@ -1,0 +1,128 @@
+version: '3.8'
+
+# =============================================================================
+# MedArchive RAG Local Development Environment
+# =============================================================================
+# Services:
+#   - qdrant: Vector database for semantic search
+#   - api: FastAPI service for query processing
+#   - ingestion: Background worker for PDF ingestion
+#
+# Usage:
+#   docker-compose up --build        # Start all services
+#   docker-compose logs -f api       # Follow API logs
+#   docker-compose down -v           # Stop and remove volumes
+
+services:
+  # ===========================================================================
+  # Qdrant Vector Database
+  # ===========================================================================
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: medarchive-qdrant
+    ports:
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    networks:
+      - medarchive-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ===========================================================================
+  # API Service (FastAPI)
+  # ===========================================================================
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: medarchive-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reload in development
+      - ./services/api:/app/services/api
+      - ./shared:/app/shared
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=text
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_RELOAD=true
+      - QDRANT_URL=http://qdrant:6333
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLAMAPARSE_API_KEY=${LLAMAPARSE_API_KEY}
+      - EMBEDDING_MODEL=BAAI/bge-large-en-v1.5
+      - RERANKER_MODEL=BAAI/bge-reranker-v2-m3
+    networks:
+      - medarchive-network
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    command: uvicorn services.api.src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ===========================================================================
+  # Ingestion Worker (Background Processing)
+  # ===========================================================================
+  ingestion:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.ingestion
+    container_name: medarchive-ingestion
+    volumes:
+      # Mount source code and data directories
+      - ./services/ingestion:/app/services/ingestion
+      - ./shared:/app/shared
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=text
+      - QDRANT_URL=http://qdrant:6333
+      - LLAMAPARSE_API_KEY=${LLAMAPARSE_API_KEY}
+      - EMBEDDING_MODEL=BAAI/bge-large-en-v1.5
+      - DOCUMENT_SOURCE_PATH=/app/data/document_store
+      - ENABLE_INCREMENTAL_SYNC=true
+      - CHUNK_SIZE=1024
+      - CHUNK_OVERLAP=200
+    networks:
+      - medarchive-network
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
+
+# =============================================================================
+# Named Volumes (persist data across container restarts)
+# =============================================================================
+volumes:
+  qdrant_storage:
+    driver: local
+    name: medarchive_qdrant_data
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+networks:
+  medarchive-network:
+    driver: bridge
+    name: medarchive-network

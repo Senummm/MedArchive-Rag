@@ -1,0 +1,60 @@
+[flake8]
+# Flake8 Configuration for MedArchive RAG
+
+# Maximum line length (aligned with Black)
+max-line-length = 100
+
+# Specify Python version
+python-version = 3.11
+
+# Exclude paths from checking
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    ENV,
+    env,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    htmlcov,
+    .tox
+
+# Ignore specific error codes
+ignore =
+    E203,  # Whitespace before ':' (conflicts with Black)
+    E266,  # Too many leading '#' for block comment
+    E501,  # Line too long (handled by Black)
+    W503,  # Line break before binary operator (PEP 8 updated)
+    W504,  # Line break after binary operator
+
+# Maximum complexity (cyclomatic complexity)
+max-complexity = 10
+
+# Show source code for errors
+show-source = True
+
+# Show error codes in output
+show-pep8 = True
+
+# Count errors
+count = True
+
+# File-specific ignores
+per-file-ignores =
+    # Allow unused imports in __init__.py files
+    __init__.py:F401,F403
+    # Allow star imports in conftest.py for fixtures
+    tests/conftest.py:F401,F403,F405
+    # Allow assert statements in tests
+    tests/*:S101
+
+# Docstring conventions (Google style)
+docstring-convention = google
+
+# Import order checking (handled by isort)
+import-order-style = google

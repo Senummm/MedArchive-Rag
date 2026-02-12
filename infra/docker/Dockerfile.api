@@ -1,0 +1,74 @@
+# =============================================================================
+# Multi-Stage Docker Build for MedArchive API Service
+# =============================================================================
+# Stage 1: Builder - Install dependencies and compile wheels
+# Stage 2: Runtime - Slim image with only runtime dependencies
+# Result: ~60-70% smaller final image, improved security posture
+
+FROM python:3.11-slim as builder
+
+# Prevent Python from writing pyc files and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /build
+
+# Install system dependencies for building Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - \
+    && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock* ./
+
+# Export dependencies to requirements.txt (for faster Docker caching)
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes --only main
+
+# Install dependencies into a virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# =============================================================================
+# Stage 2: Runtime Image
+# =============================================================================
+FROM python:3.11-slim
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy application code
+COPY shared/ ./shared/
+COPY services/api/ ./services/api/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data && chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
+
+# Expose API port
+EXPOSE 8000
+
+# Run the FastAPI application
+CMD ["uvicorn", "services.api.src.main:app", "--host", "0.0.0.0", "--port", "8000"]
