@@ -13,13 +13,13 @@
 
 ## ✨ Live Features
 
-✅ **Real-time conversation**  - WebSocket streaming with typing indicators  
-✅ **Session management**     - Persistent conversation history across refreshes  
-✅ **Medical knowledge base** - 7 indexed documents with 500+ medical chunks  
-✅ **Sub-second retrieval**   - 200-400ms response times via Groq + Qdrant  
-✅ **Citation tracking**      - Source documents with page references  
-✅ **Gray UI theme**          - Professional medical interface  
-✅ **New Chat functionality** - Session reset with preserved context  
+✅ **Real-time conversation**  - WebSocket streaming with typing indicators
+✅ **Session management**     - Persistent conversation history across refreshes
+✅ **Medical knowledge base** - 7 indexed documents with 500+ medical chunks
+✅ **Sub-second retrieval**   - 200-400ms response times via Groq + Qdrant
+✅ **Citation tracking**      - Source documents with page references
+✅ **Gray UI theme**          - Professional medical interface
+✅ **New Chat functionality** - Session reset with preserved context
 
 ---
 
@@ -30,20 +30,20 @@ graph TB
     User[👨‍⚕️ Clinician] --> WebUI[🖥️ Web Interface]
     WebUI --> WS[WebSocket Connection]
     WS --> API[FastAPI Service]
-    
+
     API --> SM[Session Manager]
     API --> RET[Retrieval Engine]
     API --> LLM[Groq LLM Service]
     API --> CIT[Citation Extractor]
-    
+
     SM --> CONV[(Conversation Store)]
     RET --> VDB[(Qdrant Vector DB)]
-    
+
     PDF[📄 Medical PDFs] --> PARSE[LlamaParse]
     PARSE --> CHUNK[Semantic Chunker]
     CHUNK --> EMB[BGE Embeddings]
     EMB --> VDB
-    
+
     style User fill:#e1f5fe
     style API fill:#f1f8e9
     style VDB fill:#fce4ec
@@ -53,7 +53,7 @@ graph TB
 ### Two-Stage Retrieval Pipeline
 
 1. **Wide Net** (Recall): BGE-Large embeddings → Qdrant search → Top 50 chunks
-2. **Filter** (Precision): BGE-Reranker-v2-m3 → Cross-encoder ranking → Top 5 chunks  
+2. **Filter** (Precision): BGE-Reranker-v2-m3 → Cross-encoder ranking → Top 5 chunks
 3. **Generate**: Groq Llama-3.3-70B → Streaming response → Citation extraction
 
 ---
@@ -63,7 +63,7 @@ graph TB
 ### Prerequisites
 
 - **Python 3.11+**
-- **Git** 
+- **Git**
 - **API Keys**:
   - [Groq API Key](https://console.groq.com/) (for LLM inference)
   - [LlamaParse API Key](https://llamaparse.com/) (for PDF parsing)
@@ -77,7 +77,7 @@ cd MedArchive-Rag
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 
-# 2. Install dependencies  
+# 2. Install dependencies
 pip install -r requirements.txt
 
 # 3. Configure environment
@@ -111,7 +111,7 @@ services/
 │   └── src/
 │       ├── main.py            # Application entrypoint
 │       ├── routes/            # API route handlers
-│       ├── llm/               # Groq LLM integration  
+│       ├── llm/               # Groq LLM integration
 │       ├── retrieval/         # Qdrant vector search
 │       ├── conversation/      # Session management
 │       ├── citations/         # Source attribution
@@ -135,7 +135,7 @@ shared/                        # Cross-service utilities
 ├── utils/                     # Configuration & logging
 └── constants/                 # Shared constants
 
-static/                        # Frontend web interface  
+static/                        # Frontend web interface
 ├── index.html                # Main chat interface
 └── assets/                   # CSS, JS, images
 
@@ -160,7 +160,7 @@ docs/                         # Documentation
 
 **Key Components**:
 - `Retriever`: Qdrant vector similarity search
-- `Reranker`: BGE cross-encoder for precision ranking  
+- `Reranker`: BGE cross-encoder for precision ranking
 - `EmbeddingService`: BGE-Large text vectorization
 
 **Usage**:
@@ -176,7 +176,7 @@ reranked = await reranker.rerank(query, results, top_k=5)
 
 **Key Features**:
 - Streaming token generation (280 tok/sec)
-- Conversation history management  
+- Conversation history management
 - Context-aware prompting
 - Temperature control for medical accuracy
 
@@ -217,7 +217,7 @@ context = session.get_context(max_turns=5)
 
 **Processing Flow**:
 1. **Parse**: LlamaParse extracts structured text + tables
-2. **Chunk**: Semantic chunker creates 400-token segments  
+2. **Chunk**: Semantic chunker creates 400-token segments
 3. **Embed**: BGE-Large generates 1024-dim vectors
 4. **Index**: Qdrant stores with metadata preservation
 
@@ -227,7 +227,7 @@ context = session.get_context(max_turns=5)
 
 **Key Features**:
 - Fuzzy text matching across chunks
-- Page number preservation  
+- Page number preservation
 - Relevance scoring
 - Citation deduplication
 
@@ -239,7 +239,7 @@ context = session.get_context(max_turns=5)
 
 - **WebSocket Streaming**: Character-by-character response display
 - **Session Persistence**: Conversations survive page refreshes via localStorage
-- **Typing Indicators**: "🔍 Searching documents...", "✍️ Writing response..."  
+- **Typing Indicators**: "🔍 Searching documents...", "✍️ Writing response..."
 - **Citation Display**: Clickable source references with page numbers
 - **Suggested Questions**: Context-aware follow-up prompts
 - **New Chat**: Clean session reset while preserving connection
@@ -261,7 +261,7 @@ context = session.get_context(max_turns=5)
 # API status
 curl http://127.0.0.1:8001/health
 
-# Vector database stats  
+# Vector database stats
 curl http://127.0.0.1:8001/api/v1/stats
 
 # Test conversation
@@ -288,7 +288,7 @@ session_1 = {"message": "What is diabetes?"}
 response_1 = post("/api/v1/chat", session_1)
 session_id = response_1["session_id"]
 
-session_2 = {"message": "How can I prevent it?", "session_id": session_id}  
+session_2 = {"message": "How can I prevent it?", "session_id": session_id}
 response_2 = post("/api/v1/chat", session_2)
 
 assert "diabetes" in response_2["message"].lower()  # Context maintained
@@ -298,19 +298,6 @@ assert "diabetes" in response_2["message"].lower()  # Context maintained
 
 ## 📊 Configuration
 
-### Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `GROQ_API_KEY` | Groq API key for Llama-3.3-70B | - | ✅ |
-| `LLAMAPARSE_API_KEY` | LlamaParse API key for PDF processing | - | ✅ |
-| `QDRANT_URL` | Vector database URL | `http://localhost:6333` | ❌ |
-| `QDRANT_COLLECTION` | Collection name | `medarchive_docs` | ❌ |
-| `GROQ_MODEL` | LLM model name | `llama-3.3-70b-versatile` | ❌ |
-| `EMBEDDING_MODEL` | HuggingFace model | `BAAI/bge-large-en-v1.5` | ❌ |
-| `LOG_LEVEL` | Logging verbosity | `INFO` | ❌ |
-| `API_HOST` | Server bind address | `127.0.0.1` | ❌ |
-| `API_PORT` | Server port | `8001` | ❌ |
 
 ### Model Configuration
 
@@ -320,7 +307,7 @@ GROQ_MODEL = "llama-3.3-70b-versatile"  # 280 tokens/sec
 TEMPERATURE = 0.1                        # Low for medical accuracy
 MAX_TOKENS = 2048                        # Comprehensive answers
 
-# Retrieval Settings  
+# Retrieval Settings
 TOP_K_INITIAL = 50                       # Wide recall
 TOP_K_RERANKED = 5                       # High precision
 SCORE_THRESHOLD = 0.3                    # Relevance cutoff
@@ -344,7 +331,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 ### Security
 
 - **API Keys**: Environment-based secret management
-- **Rate Limiting**: Per-session query throttling  
+- **Rate Limiting**: Per-session query throttling
 - **Input Validation**: Pydantic model enforcement
 - **CORS**: Configurable origin restrictions
 
@@ -352,7 +339,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 
 - **Phoenix Tracing**: Query latency and accuracy tracking
 - **Structured Logging**: JSON logs for production analysis
-- **Health Endpoints**: Automated uptime monitoring  
+- **Health Endpoints**: Automated uptime monitoring
 - **Vector Metrics**: Index size and performance stats
 
 ### Medical Compliance
@@ -382,7 +369,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 
 **Response Events**:
 - `session`: Session ID assignment
-- `typing`: Progress indicators  
+- `typing`: Progress indicators
 - `token`: Streaming text chunks
 - `complete`: Final response with citations
 - `error`: Error messages
@@ -413,7 +400,7 @@ class CustomParser(BaseParser):
 
 ### Custom Embedding Models
 
-```python  
+```python
 # Modify services/ingestion/src/embedding/service.py
 class EmbeddingService:
     def __init__(self, model_name: str = "your-model"):
@@ -423,7 +410,7 @@ class EmbeddingService:
 ### Custom LLM Services
 
 ```python
-# Extend services/api/src/llm/__init__.py  
+# Extend services/api/src/llm/__init__.py
 class CustomLLMService(LLMService):
     async def generate_answer(self, query, context):
         # Your LLM integration
@@ -458,7 +445,7 @@ start http://127.0.0.1:8001
 ```powershell
 # Formatting
 black services/ shared/ --line-length 100
-isort services/ shared/ 
+isort services/ shared/
 
 # Linting
 flake8 services/ shared/ --max-line-length=100
@@ -521,38 +508,3 @@ pytest tests/ -v --cov=services --cov=shared
 - **[BGE Models](https://huggingface.co/BAAI)** - Embedding and reranking models
 - **[Phoenix Tracing](https://docs.arize.com/phoenix)** - AI observability platform
 
-### Community
-
-- **Issues**: Report bugs and feature requests via GitHub Issues
-- **Discussions**: Join technical discussions in GitHub Discussions
-- **Contributing**: See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for contribution guidelines
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for:
-
-- Development setup instructions
-- Code style and standards  
-- Testing requirements
-- Pull request process
-- Issue reporting guidelines
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🏥 Built for Healthcare
-
-**MedArchive RAG** is designed specifically for clinical environments where accuracy, traceability, and speed are paramount. Every feature prioritizes patient safety and physician efficiency.
-
-*Built with ❤️ for clinicians who deserve better tools*
-
----
-
-**🚀 Ready to deploy your medical AI? Follow the [Quick Start](#-quick-start) guide above!**
