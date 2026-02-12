@@ -33,7 +33,7 @@
 
 ### API Keys (Required for Full Functionality)
 
-1. **Groq API Key**: 
+1. **Groq API Key**:
    - Sign up at [https://console.groq.com/](https://console.groq.com/)
    - Navigate to API Keys and create a new key
    - Free tier: 30 requests/minute
@@ -227,7 +227,7 @@ def test_document_creation():
         source_path="/data/test.pdf",
         file_hash="abc123"
     )
-    
+
     assert doc.title == "Test Doc"
     assert doc.document_type == DocumentType.FORMULARY
 ```
@@ -293,19 +293,19 @@ from shared.models import QueryRequest
 def process_query(request: QueryRequest) -> List[str]:
     """
     Process a user query and return relevant documents.
-    
+
     Args:
         request: The query request containing user input
-        
+
     Returns:
         List of document IDs matching the query
-        
+
     Raises:
         ValueError: If query is empty or invalid
     """
     if not request.query.strip():
         raise ValueError("Query cannot be empty")
-    
+
     return ["doc1", "doc2"]
 ```
 

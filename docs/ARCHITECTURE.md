@@ -255,7 +255,7 @@ MedArchive RAG is a **Retrieval-Augmented Generation (RAG)** system designed spe
 - Unit tests for parsing and chunking
 - Integration test: End-to-end ingestion of sample PDF
 
-### **Phase 3: Vector Storage & Retrieval** 
+### **Phase 3: Vector Storage & Retrieval**
 **Goal:** Sub-millisecond semantic search
 
 **Tasks:**

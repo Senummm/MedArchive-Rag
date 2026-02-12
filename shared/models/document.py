@@ -85,22 +85,22 @@ class ChunkMetadata(BaseModel):
     document_id: UUID = Field(..., description="Parent document reference")
     chunk_index: int = Field(..., ge=0, description="Sequential position in document")
     text: str = Field(..., min_length=10, description="The actual chunk text content")
-    
+
     # Semantic Context
     section_path: Optional[str] = Field(
         None, description="Hierarchical path (e.g., 'Chapter 3 > Dosing > Pediatric')"
     )
     heading: Optional[str] = Field(None, description="Nearest heading or section title")
-    
+
     # Source Location
     page_numbers: List[int] = Field(default_factory=list, description="Source page numbers")
     start_char_idx: Optional[int] = Field(None, description="Character offset in source document")
     end_char_idx: Optional[int] = Field(None, description="End character offset")
-    
+
     # Vector Metadata (populated after embedding)
     embedding_model: Optional[str] = Field(None, description="Model used for embedding")
     token_count: Optional[int] = Field(None, ge=1, description="Number of tokens in chunk")
-    
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator("text")
@@ -139,7 +139,7 @@ class RetrievalResult(BaseModel):
     metadata: Dict[str, Any] = Field(
         default_factory=dict, description="Chunk metadata (section, pages, etc.)"
     )
-    
+
     # Reranking (Stage 2)
     rerank_score: Optional[float] = Field(None, description="Score after reranking")
 

@@ -106,7 +106,7 @@ Unlike public LLMs that may hallucinate medical information, MedArchive RAG prov
    ```powershell
    # API Health Check
    curl http://localhost:8000/health
-   
+
    # Qdrant Dashboard
    # Open http://localhost:6333/dashboard
    ```
