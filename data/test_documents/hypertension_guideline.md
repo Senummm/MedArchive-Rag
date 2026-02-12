@@ -1,7 +1,7 @@
 # Clinical Practice Guideline: Hypertension Management
 
-**Version:** 2024.1  
-**Effective Date:** January 2024  
+**Version:** 2024.1
+**Effective Date:** January 2024
 **Review Date:** January 2025
 
 ## Executive Summary

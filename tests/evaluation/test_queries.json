@@ -1,0 +1,54 @@
+{
+  "queries": [
+    {
+      "query": "What is the first-line treatment for hypertension?",
+      "expected_answer": "First-line agents for hypertension include ACE inhibitors, ARBs, calcium channel blockers, and thiazide diuretics.",
+      "category": "treatment"
+    },
+    {
+      "query": "What are the contraindications for ACE inhibitors?",
+      "expected_answer": "Contraindications include pregnancy, bilateral renal artery stenosis, and history of angioedema.",
+      "category": "safety"
+    },
+    {
+      "query": "What is the target blood pressure for diabetic patients?",
+      "expected_answer": "The target blood pressure for diabetic patients is less than 130/80 mmHg.",
+      "category": "dosing"
+    },
+    {
+      "query": "What is the starting dose of lisinopril?",
+      "expected_answer": "The starting dose of lisinopril is 10mg daily, with a target dose of 20-40mg daily and maximum of 40mg daily.",
+      "category": "dosing"
+    },
+    {
+      "query": "How often should blood pressure be monitored initially?",
+      "expected_answer": "Follow-up every 2-4 weeks until BP is controlled, then check electrolytes 2-4 weeks after starting or adjusting ACE-I/ARB or diuretics.",
+      "category": "monitoring"
+    },
+    {
+      "query": "What lifestyle modifications are recommended for hypertension?",
+      "expected_answer": "DASH diet, sodium restriction (<2.3g/day), 150 minutes moderate-intensity exercise per week, weight loss, and stress management.",
+      "category": "non_pharmacological"
+    },
+    {
+      "query": "What is resistant hypertension?",
+      "expected_answer": "Resistant hypertension is BP not controlled on 3 medications including a diuretic. Add spironolactone 25-50mg daily and consider referral.",
+      "category": "definition"
+    },
+    {
+      "query": "What are the side effects of calcium channel blockers?",
+      "expected_answer": "Side effects include peripheral edema, constipation, and gingival hyperplasia.",
+      "category": "safety"
+    },
+    {
+      "query": "What is the maximum dose of amlodipine?",
+      "expected_answer": "The maximum dose of amlodipine is 10mg daily, with a starting dose of 5mg daily.",
+      "category": "dosing"
+    },
+    {
+      "query": "Can ACE inhibitors be used in pregnancy?",
+      "expected_answer": "No, ACE inhibitors should be avoided in pregnancy. Safe options include methyldopa, labetalol, and nifedipine.",
+      "category": "safety"
+    }
+  ]
+}

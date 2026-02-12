@@ -6,12 +6,14 @@ Provides sub-second retrieval with verifiable citations.
 """
 
 import time
+import uuid
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Literal
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
 
 from shared.models import HealthResponse, QueryRequest, QueryResponse, Citation, RetrievalResult
 from shared.utils import get_settings, setup_logging
@@ -19,6 +21,24 @@ from shared.utils import get_settings, setup_logging
 from .retrieval import Retriever, Reranker
 from .llm import LLMService
 from .citations import CitationExtractor
+from .observability import init_tracer, get_tracer
+
+# =============================================================================
+# Request/Response Models
+# =============================================================================
+
+class FeedbackRequest(BaseModel):
+    """User feedback on query response."""
+    trace_id: str = Field(..., description="Trace ID from query response")
+    feedback: Literal["thumbs_up", "thumbs_down"] = Field(..., description="User feedback")
+    comment: str | None = Field(None, description="Optional user comment")
+
+
+class FeedbackResponse(BaseModel):
+    """Feedback submission confirmation."""
+    success: bool
+    message: str
+
 
 # Initialize configuration and logging
 settings = get_settings()
@@ -34,6 +54,7 @@ retriever: Retriever = None
 reranker: Reranker = None
 llm_service: LLMService = None
 citation_extractor: CitationExtractor = None
+phoenix_tracer = None  # Phoenix observability tracer
 
 
 @asynccontextmanager
@@ -45,9 +66,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     - Vector database connections
     - Embedding models
     - LLM clients
+    - Observability tracing
     """
-    global retriever, reranker, llm_service, citation_extractor
-    
+    global retriever, reranker, llm_service, citation_extractor, phoenix_tracer
+
     logger.info(
         "Starting MedArchive API",
         extra={
@@ -79,6 +101,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         # Initialize citation extractor
         logger.info("Initializing citation extractor...")
         citation_extractor = CitationExtractor()
+
+        # Initialize Phoenix tracer (optional)
+        logger.info("Initializing Phoenix tracer...")
+        try:
+            phoenix_tracer = init_tracer(project_name="medarchive-rag")
+            logger.info("Phoenix tracer initialized successfully")
+        except Exception as e:
+            logger.warning(f"Phoenix tracer not available: {e}")
+            phoenix_tracer = None
 
         logger.info("All services initialized successfully")
 
@@ -176,38 +207,42 @@ async def query(request: QueryRequest) -> QueryResponse:
     1. Semantic search with embeddings
     2. Optional reranking with cross-encoder
     3. LLM answer generation with citations
-    
+
     Returns answer with verifiable source citations.
     """
     start_time = time.time()
-    
-    logger.info(f"Processing query: '{request.query}'")
+    trace_id = str(uuid.uuid4())  # Generate unique trace ID
+
+    logger.info(f"Processing query: '{request.query}' [trace_id={trace_id}]")
 
     try:
-        # Step 1: Semantic retrieval
+        # Step 1: Semantic retrieval ("Wide Net" - prioritize Recall)
+        # Retrieve top 50 chunks to ensure we don't miss relevant context
         search_results = retriever.search(
             query=request.query,
-            top_k=request.top_k * 2,  # Retrieve more for reranking
-            score_threshold=getattr(request, 'score_threshold', 0.5),
+            top_k=50,  # Fixed: retrieve 50 candidates
+            score_threshold=0.3,  # Lower threshold for broad recall
             filters=request.filters,
         )
 
         if not search_results:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-  Import note: Routes are now inline in main.py for Phase 3
-# Can be refactored to separate route modules in future phases
-# =============================================================================
+                detail="No relevant documents found for your query.",
+            )
+
+        # Step 2: Rerank with BGE-Reranker-v2-m3 ("Filter" - prioritize Precision)
+        # Takes top 50 and re-orders based on query specificity, keeps top 5
         if request.enable_reranking and reranker:
-            logger.info(f"Reranking {len(search_results)} results")
+            logger.info(f"Reranking {len(search_results)} results with BGE-Reranker-v2-m3")
             search_results = reranker.rerank(
                 query=request.query,
                 results=search_results,
-                top_k=request.top_k,
+                top_k=5,  # Fixed: return top 5 most relevant chunks
             )
         else:
-            # Just take top_k
-            search_results = search_results[:request.top_k]
+            # Fallback: just take top 5 without reranking
+            search_results = search_results[:5]
 
         # Step 3: Generate answer
         logger.info(f"Generating answer with {len(search_results)} context chunks")
@@ -250,9 +285,28 @@ async def query(request: QueryRequest) -> QueryResponse:
             retrieved_chunks=retrieval_results,
             latency_ms=latency_ms,
             model_used=settings.groq_model_name,
+            trace_id=trace_id,
         )
 
-        logger.info(f"Query completed in {latency_ms:.1f}ms")
+        # Log to Phoenix tracer if available
+        if phoenix_tracer:
+            try:
+                phoenix_tracer.trace_query(
+                    trace_id=trace_id,
+                    query=request.query,
+                    answer=answer,
+                    retrieved_chunks=[r.text for r in search_results],
+                    latency_ms=latency_ms,
+                    metadata={
+                        "model": settings.groq_model_name,
+                        "num_citations": len(citations),
+                        "reranking_enabled": request.enable_reranking,
+                    },
+                )
+            except Exception as e:
+                logger.warning(f"Failed to log trace to Phoenix: {e}")
+
+        logger.info(f"Query completed in {latency_ms:.1f}ms [trace_id={trace_id}]")
         return response
 
     except HTTPException:
@@ -273,15 +327,16 @@ async def query_stream(request: QueryRequest):
     Same as /query but streams the LLM answer as it's generated.
     """
     start_time = time.time()
-    
-    logger.info(f"Processing streaming query: '{request.query}'")
+    trace_id = str(uuid.uuid4())  # Generate unique trace ID
+
+    logger.info(f"Processing streaming query: '{request.query}' [trace_id={trace_id}]")
 
     try:
-        # Retrieval and reranking (same as regular query)
+        # Retrieval and reranking (same as regular query: 50→5 pattern)
         search_results = retriever.search(
             query=request.query,
-            top_k=request.top_k * 2,
-            score_threshold=getattr(request, 'score_threshold', 0.5),
+            top_k=50,
+            score_threshold=0.3,
             filters=request.filters,
         )
 
@@ -295,10 +350,10 @@ async def query_stream(request: QueryRequest):
             search_results = reranker.rerank(
                 query=request.query,
                 results=search_results,
-                top_k=request.top_k,
+                top_k=5,
             )
         else:
-            search_results = search_results[:request.top_k]
+            search_results = search_results[:5]
 
         # Stream answer
         async def generate():
@@ -315,11 +370,32 @@ async def query_stream(request: QueryRequest):
                 answer=full_answer,
                 search_results=search_results,
             )
-            
+
             # Send citation data as JSON at the end
             import json
             yield "\n\n---CITATIONS---\n"
             yield json.dumps([c.dict() for c in citations])
+
+            # Log to Phoenix tracer if available
+            if phoenix_tracer:
+                try:
+                    latency_ms = (time.time() - start_time) * 1000
+                    phoenix_tracer.trace_query(
+                        trace_id=trace_id,
+                        query=request.query,
+                        answer=full_answer,
+                        retrieved_chunks=[r.text for r in search_results],
+                        latency_ms=latency_ms,
+                        metadata={
+                            "model": settings.groq_model_name,
+                            "num_citations": len(citations),
+                            "streaming": True,
+                            "reranking_enabled": request.enable_reranking,
+                        },
+                    )
+                    logger.info(f"Streaming query completed in {latency_ms:.1f}ms [trace_id={trace_id}]")
+                except Exception as e:
+                    logger.warning(f"Failed to log trace to Phoenix: {e}")
 
         return StreamingResponse(generate(), media_type="text/plain")
 
@@ -356,6 +432,52 @@ async def get_stats():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
+        )
+
+
+# =============================================================================
+# Feedback Collection Endpoint
+# =============================================================================
+@app.post("/feedback", response_model=FeedbackResponse, tags=["Observability"])
+async def submit_feedback(request: FeedbackRequest) -> FeedbackResponse:
+    """
+    Collect user feedback on query responses for continuous improvement.
+
+    Feedback is logged to Phoenix tracer for analysis and failure pattern detection.
+    """
+    try:
+        if not phoenix_tracer:
+            return FeedbackResponse(
+                success=False,
+                message="Feedback collection not available (Phoenix tracer not initialized)",
+            )
+
+        # Log feedback
+        phoenix_tracer.log_feedback(
+            trace_id=request.trace_id,
+            feedback=request.feedback,
+            comment=request.comment,
+        )
+
+        logger.info(
+            "Feedback received",
+            extra={
+                "trace_id": request.trace_id,
+                "feedback": request.feedback,
+                "has_comment": request.comment is not None,
+            },
+        )
+
+        return FeedbackResponse(
+            success=True,
+            message="Feedback recorded successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to record feedback: {e}")
+        return FeedbackResponse(
+            success=False,
+            message=f"Failed to record feedback: {str(e)}",
         )
 
 

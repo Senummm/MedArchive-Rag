@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 class CitationExtractor:
     """
     Extract and format citations from search results.
-    
+
     Maps source references ([Source N]) in generated text to actual citations
     with document metadata.
     """
@@ -58,7 +58,7 @@ class CitationExtractor:
             # Source numbers are 1-indexed
             if source_num <= len(search_results):
                 result = search_results[source_num - 1]
-                
+
                 # Get document title
                 doc_title = "Unknown Document"
                 if document_titles and result.document_id in document_titles:
@@ -169,7 +169,7 @@ class CitationExtractor:
     ) -> str:
         """
         Add inline source numbers to answer text.
-        
+
         Useful when answer doesn't already have [Source N] references.
 
         Args:
@@ -181,7 +181,7 @@ class CitationExtractor:
         """
         # This is a simplified approach - in production, would use more
         # sophisticated methods to match text spans to sources
-        
+
         # For now, just append sources at the end
         if not search_results:
             return answer
@@ -189,7 +189,7 @@ class CitationExtractor:
         source_refs = ", ".join(
             f"[Source {i+1}]" for i in range(len(search_results))
         )
-        
+
         return f"{answer}\n\nSources: {source_refs}"
 
     def deduplicate_citations(self, citations: List[Citation]) -> List[Citation]:

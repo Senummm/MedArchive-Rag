@@ -138,7 +138,7 @@ class TestCitationExtractor:
     def test_create_snippet_short_text(self, extractor):
         """Test snippet creation with short text."""
         text = "Short medical text."
-        
+
         snippet = extractor._create_snippet(text, max_length=200)
 
         assert snippet == "Short medical text."
@@ -146,7 +146,7 @@ class TestCitationExtractor:
     def test_create_snippet_long_text(self, extractor):
         """Test snippet creation with long text."""
         text = "This is a very long medical text. " * 20
-        
+
         snippet = extractor._create_snippet(text, max_length=100)
 
         assert len(snippet) <= 110  # Allow some buffer for word boundaries
@@ -154,7 +154,7 @@ class TestCitationExtractor:
     def test_create_snippet_breaks_at_sentence(self, extractor):
         """Test that snippet breaks at sentence boundary."""
         text = "First sentence. Second sentence. Third sentence. Fourth sentence."
-        
+
         snippet = extractor._create_snippet(text, max_length=50)
 
         assert snippet.endswith(".")
@@ -227,7 +227,7 @@ class TestCitationExtractor:
     def test_merge_page_ranges(self, extractor):
         """Test merging page numbers into ranges."""
         pages = [1, 2, 3, 5, 7, 8, 9, 12]
-        
+
         merged = extractor.merge_page_ranges(pages)
 
         assert merged == "1-3, 5, 7-9, 12"
@@ -235,7 +235,7 @@ class TestCitationExtractor:
     def test_merge_page_ranges_single_page(self, extractor):
         """Test merging with single page."""
         pages = [5]
-        
+
         merged = extractor.merge_page_ranges(pages)
 
         assert merged == "5"

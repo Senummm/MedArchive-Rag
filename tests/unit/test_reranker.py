@@ -54,7 +54,7 @@ class TestReranker:
     def test_rerank_updates_scores(self, reranker, sample_results, mock_cross_encoder):
         """Test that reranking updates scores."""
         query = "test query"
-        
+
         reranked = reranker.rerank(query, sample_results)
 
         # Scores should be updated from cross-encoder
@@ -64,7 +64,7 @@ class TestReranker:
     def test_rerank_sorts_by_score(self, reranker, sample_results):
         """Test that results are sorted by new scores."""
         query = "test query"
-        
+
         # Mock returns [0.3, 0.7, 0.5], so order should be: 1, 2, 0
         reranked = reranker.rerank(query, sample_results)
 
@@ -75,7 +75,7 @@ class TestReranker:
     def test_rerank_with_top_k(self, reranker, sample_results):
         """Test reranking with top_k limit."""
         query = "test query"
-        
+
         reranked = reranker.rerank(query, sample_results, top_k=2)
 
         assert len(reranked) == 2
@@ -89,7 +89,7 @@ class TestReranker:
     def test_compute_score_single_pair(self, reranker, mock_cross_encoder):
         """Test computing score for single query-text pair."""
         mock_cross_encoder.predict.return_value = np.array([0.85])
-        
+
         score = reranker.compute_score("query", "text")
 
         assert score == 0.85
@@ -110,12 +110,12 @@ class TestReranker:
         """Test that reranking preserves all metadata."""
         query = "test query"
         original = sample_results[0]
-        
+
         reranked = reranker.rerank(query, sample_results)
 
         # Find the corresponding result (may be reordered)
         matching = [r for r in reranked if r.chunk_id == original.chunk_id][0]
-        
+
         assert matching.document_id == original.document_id
         assert matching.text == original.text
         assert matching.source_file == original.source_file
@@ -124,7 +124,7 @@ class TestReranker:
     def test_rerank_creates_new_objects(self, reranker, sample_results):
         """Test that reranking creates new SearchResult objects."""
         query = "test query"
-        
+
         reranked = reranker.rerank(query, sample_results)
 
         # Objects should be different instances

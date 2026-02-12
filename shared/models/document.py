@@ -128,7 +128,7 @@ class ChunkMetadata(BaseModel):
 class SearchResult(BaseModel):
     """
     A single search result from vector database retrieval.
-    
+
     Lightweight model for internal retrieval operations.
     """
 
@@ -221,6 +221,7 @@ class QueryResponse(BaseModel):
     latency_ms: float = Field(..., description="Total query processing time")
     model_used: str = Field(..., description="LLM model identifier")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    trace_id: str | None = Field(None, description="Phoenix trace ID for observability")
 
     class Config:
         json_schema_extra = {

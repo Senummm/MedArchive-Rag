@@ -32,7 +32,7 @@ class TestRetriever:
         """Create a retriever instance with mocked dependencies."""
         monkeypatch.setattr("services.api.src.retrieval.retriever.QdrantClient", lambda *args, **kwargs: mock_qdrant_client)
         monkeypatch.setattr("services.api.src.retrieval.retriever.SentenceTransformer", lambda *args, **kwargs: mock_embedding_model)
-        
+
         return Retriever()
 
     def test_retriever_initialization(self, retriever):
@@ -44,7 +44,7 @@ class TestRetriever:
     def test_embed_query(self, retriever, mock_embedding_model):
         """Test query embedding generation."""
         query = "What is the dosage for amoxicillin?"
-        
+
         embedding = retriever.embed_query(query)
 
         assert isinstance(embedding, list)
@@ -56,7 +56,7 @@ class TestRetriever:
         # Mock Qdrant response
         doc_id = uuid4()
         chunk_id = uuid4()
-        
+
         mock_result = Mock()
         mock_result.id = str(chunk_id)
         mock_result.score = 0.95
@@ -68,7 +68,7 @@ class TestRetriever:
             "section_path": "Antibiotics > Penicillins",
             "chunk_index": 5,
         }
-        
+
         mock_qdrant_client.search.return_value = [mock_result]
 
         results = retriever.search("amoxicillin dosage", top_k=5)
@@ -115,7 +115,7 @@ class TestRetriever:
         mock_info.points_count = 1000
         mock_info.status = "green"
         mock_info.segments_count = 1
-        
+
         mock_qdrant_client.get_collection.return_value = mock_info
 
         stats = retriever.get_collection_stats()
@@ -137,7 +137,7 @@ class TestRetriever:
         """Test retrieving all chunks for a document."""
         doc_id = uuid4()
         chunk_ids = [uuid4(), uuid4(), uuid4()]
-        
+
         mock_points = []
         for i, chunk_id in enumerate(chunk_ids):
             point = Mock()
@@ -150,7 +150,7 @@ class TestRetriever:
                 "chunk_index": i,
             }
             mock_points.append(point)
-        
+
         mock_qdrant_client.scroll.return_value = (mock_points, None)
 
         chunks = retriever.get_document_chunks(doc_id)

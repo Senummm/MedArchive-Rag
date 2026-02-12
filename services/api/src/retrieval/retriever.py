@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class Retriever:
     """
     Retrieval service for semantic search against the vector database.
-    
+
     Supports:
     - Semantic search with embeddings
     - Metadata filtering (source file, date range, etc.)

@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 class LLMService:
     """
     LLM service for generating answers from retrieved context.
-    
+
     Uses Groq API with Llama-3.3-70B for fast, high-quality responses.
     """
 
@@ -220,7 +220,7 @@ Remember: Patient safety depends on accuracy. Never hallucinate or guess."""
     ) -> str:
         """
         Generate a standalone question from a conversational query.
-        
+
         Useful for handling follow-up questions that reference previous context.
 
         Args:
