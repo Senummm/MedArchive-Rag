@@ -7,7 +7,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-orange.svg)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 
 ---
 
@@ -253,48 +253,6 @@ context = session.get_context(max_turns=5)
 
 ---
 
-## 🧪 Testing & Validation
-
-### Health Checks
-
-```powershell
-# API status
-curl http://127.0.0.1:8001/health
-
-# Vector database stats
-curl http://127.0.0.1:8001/api/v1/stats
-
-# Test conversation
-curl -X POST http://127.0.0.1:8001/api/v1/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "What are the symptoms of diabetes?"}'
-```
-
-### Performance Benchmarks
-
-| Metric | Target | Actual |
-|--------|--------|---------|
-| Query Latency | <500ms | 200-400ms |
-| Embedding Speed | <100ms | ~50ms |
-| Retrieval Time | <50ms | ~20ms |
-| LLM First Token | <200ms | ~100ms |
-| Index Build Time | <5min | ~2min |
-
-### Conversation Flow Testing
-
-```python
-# Example conversation test
-session_1 = {"message": "What is diabetes?"}
-response_1 = post("/api/v1/chat", session_1)
-session_id = response_1["session_id"]
-
-session_2 = {"message": "How can I prevent it?", "session_id": session_id}
-response_2 = post("/api/v1/chat", session_2)
-
-assert "diabetes" in response_2["message"].lower()  # Context maintained
-```
-
----
 
 ## 📊 Configuration
 
@@ -319,37 +277,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 
 ---
 
-## 📋 Production Considerations
 
-### Scalability
-
-- **Vector Database**: Qdrant Cloud for distributed indexing
-- **LLM Service**: Groq's autoscaling handles traffic spikes
-- **Session Storage**: Redis for multi-instance session sharing
-- **Load Balancing**: NGINX for WebSocket connection pooling
-
-### Security
-
-- **API Keys**: Environment-based secret management
-- **Rate Limiting**: Per-session query throttling
-- **Input Validation**: Pydantic model enforcement
-- **CORS**: Configurable origin restrictions
-
-### Monitoring
-
-- **Phoenix Tracing**: Query latency and accuracy tracking
-- **Structured Logging**: JSON logs for production analysis
-- **Health Endpoints**: Automated uptime monitoring
-- **Vector Metrics**: Index size and performance stats
-
-### Medical Compliance
-
-- **Source Attribution**: Every answer includes document references
-- **Audit Logging**: Full query and response traceability
-- **Version Control**: Document hash tracking for content changes
-- **Hallucination Prevention**: LLM responses grounded in retrieved context only
-
----
 
 ## 🔗 API Reference
 
@@ -386,38 +314,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 
 ---
 
-## 🧩 Extension Points
 
-### Custom Document Types
-
-```python
-# Add new parser in services/ingestion/src/parsers/
-class CustomParser(BaseParser):
-    def parse_document(self, file_path: str) -> List[Document]:
-        # Your parsing logic
-        pass
-```
-
-### Custom Embedding Models
-
-```python
-# Modify services/ingestion/src/embedding/service.py
-class EmbeddingService:
-    def __init__(self, model_name: str = "your-model"):
-        self.model = SentenceTransformer(model_name)
-```
-
-### Custom LLM Services
-
-```python
-# Extend services/api/src/llm/__init__.py
-class CustomLLMService(LLMService):
-    async def generate_answer(self, query, context):
-        # Your LLM integration
-        pass
-```
-
----
 
 ## 🚀 Development Workflow
 
