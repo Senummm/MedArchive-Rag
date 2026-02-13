@@ -10,7 +10,7 @@
 
 ```mermaid
 graph TB
-    PDF[📄 PDF Files] --> Detect[File Detection]
+    PDF[PDF Files] --> Detect[File Detection]
     Detect --> Parse[LlamaParse]
     Parse --> Chunk[Semantic Chunker]
     Chunk --> Embed[BGE Embeddings]
@@ -125,7 +125,7 @@ tables = [
 class SemanticChunker:
     def __init__(
         self,
-        chunk_size: int = 400,        # Target tokens per chunk
+        chunk_size: int = 1024,       # Target tokens per chunk
         chunk_overlap: int = 50,      # Overlap for context preservation
         max_recursion_depth: int = 5  # Prevent infinite recursion
     ):
@@ -380,7 +380,7 @@ if __name__ == "__main__":
 ### Pipeline Settings
 ```python
 # Text chunking
-CHUNK_SIZE = 400                # Target tokens per chunk
+CHUNK_SIZE = 1024               # Target tokens per chunk
 CHUNK_OVERLAP = 50              # Context preservation
 MAX_RECURSION_DEPTH = 5         # Chunking safety limit
 

@@ -230,7 +230,7 @@ MedArchive RAG is a **Retrieval-Augmented Generation (RAG)** system designed spe
 
 ## Phase Roadmap
 
-### **Phase 1: Foundation** ✅ **COMPLETE**
+### **Phase 1: Foundation** **COMPLETE**
 - Git repository and project structure
 - Poetry dependency management
 - Docker infrastructure (multi-stage builds)

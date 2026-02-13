@@ -6,41 +6,41 @@ This directory contains detailed documentation for each module of the MedArchive
 
 ---
 
-## 📚 Module Index
+## Module Index
 
-### 🔍 [Retrieval Module](retrieval.md)
+### [Retrieval Module](retrieval.md)
 **Purpose**: High-performance semantic search and document retrieval
 **Key Features**: Qdrant vector search, BGE embeddings, two-stage retrieval with reranking
 **Performance**: ~50ms end-to-end, 200+ QPS throughput
 
-### 🧠 [LLM Module](llm.md)
+### [LLM Module](llm.md)
 **Purpose**: Groq API integration for ultra-fast medical question answering
 **Key Features**: Streaming responses, conversation context, 280 tokens/sec generation
 **Model**: Llama-3.3-70B with medical-optimized prompting
 
-### 💬 [Conversation Module](conversation.md)
+### [Conversation Module](conversation.md)
 **Purpose**: Multi-turn dialogue management with persistent sessions
 **Key Features**: Session persistence, context tracking, follow-up understanding
 **Storage**: In-memory (dev) / Redis (production)
 
-### 📄 [Ingestion Module](ingestion.md)
+### [Ingestion Module](ingestion.md)
 **Purpose**: Background PDF processing pipeline with table-aware parsing
 **Key Features**: LlamaParse integration, semantic chunking, incremental sync
-**Processing**: 400-token chunks with BGE-Large embeddings
+**Processing**: 1024-token chunks with BGE-Large embeddings
 
-### 🔗 [Citations Module](citations.md)
+### [Citations Module](citations.md)
 **Purpose**: Source attribution and reference tracking for verifiable answers
 **Key Features**: Fuzzy text matching, relevance scoring, citation formatting
 **Quality**: Precision metrics and deduplication
 
-### 🌐 [Frontend Module](frontend.md)
+### [Frontend Module](frontend.md)
 **Purpose**: Real-time web interface with WebSocket streaming
 **Key Features**: Session persistence, typing indicators, mobile responsive
 **Theme**: Professional gray medical interface
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TB
@@ -92,7 +92,7 @@ graph TB
     style LLM fill:#fff3e0
 ```
 
-## 🚀 Quick Module Navigation
+## Quick Module Navigation
 
 ### For Backend Developers
 - **API Development**: [LLM Module](llm.md) → [Conversation Module](conversation.md)
@@ -134,7 +134,7 @@ graph LR
     style Ingestion fill:#fce4ec
 ```
 
-## 🔧 Configuration Matrix
+## Configuration Matrix
 
 | Module | Config File | Environment Variables | Dependencies |
 |--------|-------------|----------------------|-------------|
@@ -145,7 +145,7 @@ graph LR
 | **Citations** | Built-in settings | - | Retrieval results |
 | **Frontend** | `static/index.html` | WebSocket URL | API server |
 
-## 🧪 Testing Strategy
+## Testing Strategy
 
 ### Unit Tests by Module
 - **Retrieval**: Vector search accuracy, embedding generation
@@ -160,7 +160,7 @@ graph LR
 - **Performance**: Latency benchmarks across module boundaries
 - **Reliability**: Error handling and recovery scenarios
 
-## 📈 Performance Characteristics
+## Performance Characteristics
 
 | Module | Latency | Throughput | Memory Usage | Scalability |
 |--------|---------|------------|--------------|-------------|
@@ -173,7 +173,7 @@ graph LR
 
 ---
 
-## 🔗 External Resources
+## External Resources
 
 ### API Documentation
 - **[Groq API Docs](https://console.groq.com/docs)** - LLM service integration
@@ -190,7 +190,7 @@ graph LR
 
 ---
 
-## 💡 Contributing to Documentation
+## Contributing to Documentation
 
 ### Adding New Modules
 1. Create new `.md` file in `docs/modules/`

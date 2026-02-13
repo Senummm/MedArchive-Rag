@@ -548,4 +548,4 @@ poetry run locust -f locustfile.py
 
 ---
 
-**Happy Coding! 🚀**
+**Happy Coding!**

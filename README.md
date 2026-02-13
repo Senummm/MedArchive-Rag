@@ -11,23 +11,23 @@
 
 ---
 
-## ✨ Live Features
+## Live Features
 
-✅ **Real-time conversation**  - WebSocket streaming with typing indicators
-✅ **Session management**     - Persistent conversation history across refreshes
-✅ **Medical knowledge base** - 7 indexed documents with 500+ medical chunks
-✅ **Sub-second retrieval**   - 200-400ms response times via Groq + Qdrant
-✅ **Citation tracking**      - Source documents with page references
-✅ **Gray UI theme**          - Professional medical interface
-✅ **New Chat functionality** - Session reset with preserved context
+**Real-time conversation** - WebSocket streaming with typing indicators
+**Session management** - Persistent conversation history across refreshes
+**Medical knowledge base** - 7 indexed documents with 500+ medical chunks
+**Sub-second retrieval** - 200-400ms response times via Groq + Qdrant
+**Citation tracking** - Source documents with page references
+**Gray UI theme** - Professional medical interface
+**New Chat functionality** - Session reset with preserved context
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TB
-    User[👨‍⚕️ Clinician] --> WebUI[🖥️ Web Interface]
+    User[Clinician] --> WebUI[Web Interface]
     WebUI --> WS[WebSocket Connection]
     WS --> API[FastAPI Service]
 
@@ -39,7 +39,7 @@ graph TB
     SM --> CONV[(Conversation Store)]
     RET --> VDB[(Qdrant Vector DB)]
 
-    PDF[📄 Medical PDFs] --> PARSE[LlamaParse]
+    PDF[Medical PDFs] --> PARSE[LlamaParse]
     PARSE --> CHUNK[Semantic Chunker]
     CHUNK --> EMB[BGE Embeddings]
     EMB --> VDB
@@ -58,7 +58,7 @@ graph TB
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -91,17 +91,17 @@ python scripts/create_sample_pdfs.py
 python -m services.ingestion.src.main
 
 # 6. Start API server
-python -m uvicorn services.api.src.main:app --host 127.0.0.1 --port 8001
+python -m uvicorn services.api.src.main:app --host 127.0.0.1 --port 8000
 
 # 7. Open browser
-start http://127.0.0.1:8001
+start http://127.0.0.1:8000
 ```
 
 **That's it!** You now have a medical AI running locally with conversation history.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ### Core Services
 
@@ -152,9 +152,9 @@ docs/                         # Documentation
 
 ---
 
-## 🛠️ Core Modules
+## Core Modules
 
-### 🔍 Retrieval Engine (`services/api/src/retrieval/`)
+### Retrieval Engine (`services/api/src/retrieval/`)
 
 **Purpose**: Semantic search and document retrieval
 
@@ -170,7 +170,7 @@ results = await retriever.search("diabetes treatment", top_k=50)
 reranked = await reranker.rerank(query, results, top_k=5)
 ```
 
-### 🧠 LLM Service (`services/api/src/llm/`)
+### LLM Service (`services/api/src/llm/`)
 
 **Purpose**: Groq API integration for answer generation
 
@@ -187,7 +187,7 @@ async for chunk in llm.generate_answer_stream(query, context_chunks):
     yield chunk  # Real-time streaming
 ```
 
-### 💬 Conversation Manager (`services/api/src/conversation/`)
+### Conversation Manager (`services/api/src/conversation/`)
 
 **Purpose**: Multi-turn dialogue and session persistence
 
@@ -205,7 +205,7 @@ session.add_message("user", "What is diabetes?")
 context = session.get_context(max_turns=5)
 ```
 
-### 📄 Document Ingestion (`services/ingestion/src/`)
+### Document Ingestion (`services/ingestion/src/`)
 
 **Purpose**: PDF parsing and vector indexing pipeline
 
@@ -217,11 +217,11 @@ context = session.get_context(max_turns=5)
 
 **Processing Flow**:
 1. **Parse**: LlamaParse extracts structured text + tables
-2. **Chunk**: Semantic chunker creates 400-token segments
+2. **Chunk**: Semantic chunker creates 1024-token segments
 3. **Embed**: BGE-Large generates 1024-dim vectors
 4. **Index**: Qdrant stores with metadata preservation
 
-### 🔗 Citation Extraction (`services/api/src/citations/`)
+### Citation Extraction (`services/api/src/citations/`)
 
 **Purpose**: Source attribution and reference tracking
 
@@ -233,13 +233,13 @@ context = session.get_context(max_turns=5)
 
 ---
 
-## 🌐 Web Interface
+## Web Interface
 
 ### Real-time Chat Features
 
 - **WebSocket Streaming**: Character-by-character response display
 - **Session Persistence**: Conversations survive page refreshes via localStorage
-- **Typing Indicators**: "🔍 Searching documents...", "✍️ Writing response..."
+- **Typing Indicators**: "Searching documents...", "Writing response..."
 - **Citation Display**: Clickable source references with page numbers
 - **Suggested Questions**: Context-aware follow-up prompts
 - **New Chat**: Clean session reset while preserving connection
@@ -254,7 +254,7 @@ context = session.get_context(max_turns=5)
 ---
 
 
-## 📊 Configuration
+## Configuration
 
 
 ### Model Configuration
@@ -271,7 +271,7 @@ TOP_K_RERANKED = 5                       # High precision
 SCORE_THRESHOLD = 0.3                    # Relevance cutoff
 
 # Chunking Settings
-CHUNK_SIZE = 400                         # Token limit per chunk
+CHUNK_SIZE = 1024                        # Token limit per chunk
 CHUNK_OVERLAP = 50                       # Context preservation
 ```
 
@@ -279,7 +279,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 
 
 
-## 🔗 API Reference
+## API Reference
 
 ### WebSocket Endpoints
 
@@ -316,7 +316,7 @@ CHUNK_OVERLAP = 50                       # Context preservation
 
 
 
-## 🚀 Development Workflow
+## Development Workflow
 
 ### Local Development
 
@@ -328,13 +328,13 @@ CHUNK_OVERLAP = 50                       # Context preservation
 pip install -r requirements.txt
 
 # Run in development mode (hot reload)
-uvicorn services.api.src.main:app --reload --host 127.0.0.1 --port 8001
+uvicorn services.api.src.main:app --reload --host 127.0.0.1 --port 8000
 
 # Run ingestion pipeline
 python -m services.ingestion.src.main
 
 # Access development interface
-start http://127.0.0.1:8001
+start http://127.0.0.1:8000
 ```
 
 ### Code Quality
@@ -354,7 +354,7 @@ pytest tests/ -v --cov=services --cov=shared
 
 ---
 
-## 🎯 Technology Stack
+## Technology Stack
 
 ### Core Infrastructure
 
@@ -389,13 +389,13 @@ pytest tests/ -v --cov=services --cov=shared
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### Documentation
 
-- **[🏛️ Architecture Guide](docs/ARCHITECTURE.md)** - System design patterns and data flow
-- **[⚙️ Development Guide](docs/DEVELOPMENT.md)** - Setup workflows and coding standards
-- **[📚 Module Documentation](docs/modules/)** - Detailed component references
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - System design patterns and data flow
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup workflows and coding standards
+- **[Module Documentation](docs/modules/)** - Detailed component references
 
 ### External Resources
 

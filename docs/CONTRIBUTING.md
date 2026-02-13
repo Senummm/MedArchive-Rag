@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 Project Mission
+## Project Mission
 
 **Goal**: Create a clinical decision support system that provides sub-second, evidence-based answers sourced directly from verified medical documents with zero hallucination.
 
@@ -16,7 +16,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -48,7 +48,7 @@ cp .env.example .env
 
 # 5. Verify installation
 python -m pytest tests/ -v
-python -c "from services.api.src.main import app; print('✅ Setup complete!')"
+python -c "from services.api.src.main import app; print('Setup complete!')"
 ```
 
 ### First Contribution Workflow
@@ -127,14 +127,14 @@ MedArchive-RAG/
 
 ---
 
-## 🔧 Development Standards
+## Development Standards
 
 ### Code Quality
 
 #### Python Style Guide
 
 ```python
-# ✅ Good: Clear, descriptive function with type hints
+# Good: Clear, descriptive function with type hints
 async def extract_citations(
     answer: str,
     search_results: List[SearchResult],
@@ -171,7 +171,7 @@ async def extract_citations(
         raise CitationError(f"Failed to extract citations: {e}") from e
 
 
-# ❌ Avoid: Unclear function without types or docs
+# Avoid: Unclear function without types or docs
 def get_stuff(data, config):
     result = []
     for item in data:
@@ -183,7 +183,7 @@ def get_stuff(data, config):
 #### Error Handling Patterns
 
 ```python
-# ✅ Good: Specific exception handling with context
+# Good: Specific exception handling with context
 try:
     response = await groq_client.chat.completions.create(
         model=self.model,
@@ -206,7 +206,7 @@ except Exception as e:
     raise LLMServiceError(f"Generation failed: {e}") from e
 
 
-# ❌ Avoid: Generic exception catching
+# Avoid: Generic exception catching
 try:
     result = some_api_call()
 except Exception as e:
@@ -222,7 +222,7 @@ from shared.utils import get_logger
 
 logger = get_logger(__name__)
 
-# ✅ Good: Structured logging with context
+# Good: Structured logging with context
 logger.info(
     "Query processing completed",
     extra={
@@ -233,13 +233,13 @@ logger.info(
     }
 )
 
-# ✅ Good: Appropriate log levels
+# Good: Appropriate log levels
 logger.debug(f"Raw embedding shape: {embedding.shape}")        # Development
 logger.info(f"Processed {chunk_count} document chunks")        # Operations
 logger.warning(f"High memory usage: {memory_mb}MB")            # Attention needed
 logger.error(f"Vector search failed: {error}", exc_info=True) # Requires action
 
-# ❌ Avoid: Poor logging practices
+# Avoid: Poor logging practices
 print(f"Processing query: {query}")              # Use logger, not print
 logger.info(f"Error occurred: {sensitive_data}") # Don't log sensitive data
 logger.error("Something went wrong")              # Too vague, no context
@@ -354,7 +354,7 @@ class TestChatAPI:
 
 ---
 
-## 📝 Commit Guidelines
+## Commit Guidelines
 
 ### Conventional Commits
 
@@ -414,7 +414,7 @@ git commit -m "feat!: redesign citation API for better performance"
 
 ---
 
-## 🔄 Pull Request Process
+## Pull Request Process
 
 ### PR Checklist
 
@@ -511,7 +511,7 @@ Brief description of changes and motivation.
 ### Error Handling for Medical Context
 
 ```python
-# ✅ Good: Safe medical error handling
+# Good: Safe medical error handling
 if not retrieved_chunks:
     return {
         "answer": "I don't have sufficient information from the medical documents to answer this question safely. Please consult current clinical guidelines or a healthcare professional.",
@@ -519,7 +519,7 @@ if not retrieved_chunks:
         "warning": "INSUFFICIENT_CONTEXT"
     }
 
-# ✅ Good: Clear limitations
+# Good: Clear limitations
 response_disclaimer = """
 This information is for educational purposes only and
 should not replace professional medical advice.
@@ -527,14 +527,14 @@ Always consult with qualified healthcare providers for
 patient-specific recommendations.
 """
 
-# ❌ Avoid: Overconfident medical claims
+# Avoid: Overconfident medical claims
 # "The patient should take 500mg of metformin twice daily"
 # Better: "Guidelines suggest metformin starting doses typically range from..."
 ```
 
 ---
 
-## 🚀 Feature Development Workflow
+## Feature Development Workflow
 
 ### Planning Phase
 
@@ -566,7 +566,7 @@ patient-specific recommendations.
 
 ---
 
-## 📚 Resources for Contributors
+## Resources for Contributors
 
 ### Technical Documentation
 - **[Module Documentation](modules/README.md)** - Detailed component guides
@@ -616,7 +616,7 @@ patient-specific recommendations.
 
 ---
 
-## 📄 License & Code of Conduct
+## License & Code of Conduct
 
 ### MIT License
 This project is licensed under the MIT License - see [LICENSE](../LICENSE) for details.

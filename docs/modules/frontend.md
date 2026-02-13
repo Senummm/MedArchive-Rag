@@ -10,7 +10,7 @@
 
 ```mermaid
 graph TB
-    Browser[🌐 Web Browser] --> HTML[index.html]
+    Browser[Web Browser] --> HTML[index.html]
     HTML --> WS[WebSocket Client]
     WS --> API[FastAPI WebSocket Server]
 
@@ -61,11 +61,11 @@ graph TB
         </div>
 
         <!-- Loading Indicator -->
-        <div class="loading">🔍 Processing...</div>
+        <div class="loading">Processing...</div>
 
         <!-- Suggested Questions -->
         <div id="suggestedQuestions" class="suggested-questions">
-            <strong>💡 Suggested follow-ups:</strong>
+            <strong>Suggested follow-ups:</strong>
             <div id="questionsList"></div>
         </div>
 
@@ -196,7 +196,7 @@ body {
 #### WebSocket Management
 ```javascript
 // Configuration
-const WS_URL = 'ws://127.0.0.1:8001/api/v1/chat/ws';
+const WS_URL = 'ws://127.0.0.1:8000/api/v1/chat/ws';
 let ws = null;
 let sessionId = null;
 let isWaitingForResponse = false;
@@ -242,7 +242,7 @@ function connectWebSocket() {
 
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        addMessage('assistant', '❌ Connection error. Please refresh the page.', null, true);
+        addMessage('assistant', 'Connection error. Please refresh the page.', null, true);
     };
 
     ws.onclose = () => {
@@ -278,7 +278,7 @@ function handleWebSocketMessage(message) {
 
         case 'error':
             console.error('Server error:', message.message);
-            addMessage('assistant', `❌ ${message.message}`, null, true);
+            addMessage('assistant', `Error: ${message.message}`, null, true);
             resetUIState();
             break;
     }
@@ -407,7 +407,7 @@ function finalizeMessage(citations, suggestedQuestions) {
         const citationsDiv = document.createElement('div');
         citationsDiv.className = 'citations';
 
-        let citationsHTML = '<strong>📚 Sources:</strong><br>';
+        let citationsHTML = '<strong>Sources:</strong><br>';
         citations.forEach((citation, index) => {
             const pageInfo = citation.page_numbers && citation.page_numbers.length > 0
                 ? ` (p. ${citation.page_numbers.join(', ')})`
@@ -525,9 +525,9 @@ function showSuggestedQuestions(questions) {
 ```javascript
 function updateTypingIndicator(status) {
     const statusText = {
-        'retrieving': '🔍 Searching documents...',
-        'reranking': '📊 Ranking results...',
-        'generating': '✍️ Writing response...'
+        'retrieving': 'Searching documents...',
+        'reranking': 'Ranking results...',
+        'generating': 'Writing response...'
     };
 
     loadingDiv.textContent = statusText[status] || 'Processing...';
@@ -682,7 +682,7 @@ function handleConnectionError() {
     console.log('Connection lost, attempting recovery...');
 
     // Show user-friendly error
-    addMessage('assistant', '🔄 Connection lost. Reconnecting...', null, true);
+    addMessage('assistant', 'Connection lost. Reconnecting...', null, true);
 
     // Attempt reconnection
     setTimeout(() => {
@@ -710,7 +710,7 @@ ws.onclose = (event) => {
 function validateMessage(message) {
     // Check message length
     if (message.length > 1000) {
-        addMessage('assistant', '⚠️ Message too long. Please limit to 1000 characters.', null, true);
+        addMessage('assistant', 'Message too long. Please limit to 1000 characters.', null, true);
         return false;
     }
 
@@ -726,7 +726,7 @@ function validateMessage(message) {
 
     for (const term of prohibited) {
         if (lowerMessage.includes(term)) {
-            addMessage('assistant', '⚠️ Message contains prohibited content.', null, true);
+            addMessage('assistant', 'Message contains prohibited content.', null, true);
             return false;
         }
     }
@@ -813,7 +813,7 @@ button:focus, textarea:focus {
         // Initialize chat interface
         MedArchiveChat.init({
             container: '#chat-container',
-            wsUrl: 'ws://localhost:8001/api/v1/chat/ws',
+            wsUrl: 'ws://localhost:8000/api/v1/chat/ws',
             theme: 'medical-gray'
         });
     </script>
@@ -859,9 +859,9 @@ document.addEventListener('medarchive:citationsReceived', (event) => {
 **That completes the comprehensive module documentation for MedArchive RAG!**
 
 **Module Documentation Index:**
-- [🔍 Retrieval Module](retrieval.md) - Vector search and reranking
-- [🧠 LLM Module](llm.md) - Groq integration and streaming
-- [💬 Conversation Module](conversation.md) - Session management
-- [📄 Ingestion Module](ingestion.md) - PDF processing pipeline
-- [🔗 Citations Module](citations.md) - Source attribution
-- [🌐 Frontend Module](frontend.md) - Web interface (this document)
+- [Retrieval Module](retrieval.md) - Vector search and reranking
+- [LLM Module](llm.md) - Groq integration and streaming
+- [Conversation Module](conversation.md) - Session management
+- [Ingestion Module](ingestion.md) - PDF processing pipeline
+- [Citations Module](citations.md) - Source attribution
+- [Frontend Module](frontend.md) - Web interface (this document)

@@ -360,7 +360,7 @@ function renderCitations(citations) {
     }
 
     citationsDiv.innerHTML = `
-        <strong>📚 Sources:</strong>
+        <strong>Sources:</strong>
         ${citations.map((citation, index) => `
             <div class="citation" data-relevance="${citation.relevance_score}">
                 <strong>[${index + 1}]</strong>
